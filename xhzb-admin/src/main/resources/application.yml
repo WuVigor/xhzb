@@ -17,6 +17,24 @@ ruoyi:
 spring:
   profiles:
     active: dev
+  ai:
+    deepseek:
+      base-url: https://api.deepseek.com
+      api-key: sk-0f4ca12b1f9a421d9f7c3aa165e0aca6
+      chat:
+        options:
+          model: deepseek-chat
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: qwen2:0.5b
+    openai:
+      api-key: sk-2bf88854ffa1402a83d2eaf02daeedec  #读取环境变量中的api key
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
+      chat:
+        options:
+          model: qwen3.6-plus
 
 # 用户配置
 user:
