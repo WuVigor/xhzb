@@ -27,6 +27,15 @@ public class OSSAliyunFileStorageService {
     AliOssConfigProperties aliOssConfigProperties;
 
     /**
+     * 根据url从oss中下载文件
+     */
+    public InputStream download(String pathUrl) {
+        String prefix = "https://"+aliOssConfigProperties.getBucketName()+"."+ aliOssConfigProperties.getEndpoint()+"/";
+        String key = pathUrl.replace(prefix, "");
+        return ossClient.getObject(aliOssConfigProperties.getBucketName(), key).getObjectContent();
+    }
+
+    /**
      * 上传文件
      * @param objectName  文件名
      * @param inputStream  文件流对象

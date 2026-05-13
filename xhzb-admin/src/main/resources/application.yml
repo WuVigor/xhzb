@@ -35,6 +35,10 @@ spring:
       chat:
         options:
           model: qwen3.6-plus
+      embedding:
+        options:
+          model: text-embedding-v4
+          dimensions: 1024
 
 # 用户配置
 user:

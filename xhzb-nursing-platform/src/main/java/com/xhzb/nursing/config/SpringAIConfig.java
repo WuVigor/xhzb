@@ -6,9 +6,14 @@ import com.xhzb.nursing.tool.NursingProjectTool;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.deepseek.DeepSeekChatModel;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.transformer.splitter.TextSplitter;
+import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,14 +26,37 @@ public class SpringAIConfig {
      * @return
      */
     @Bean
-    public ChatClient chatClient(OpenAiChatModel openAiChatModel, NursingProjectTool nursingProjectTool, RedisChatMemoryService redisChatMemoryService) {
+    public ChatClient chatClient(OpenAiChatModel openAiChatModel, VectorStore vectorStore, NursingProjectTool nursingProjectTool, RedisChatMemoryService redisChatMemoryService) {
+
+        // 检索rag的数据
+        QuestionAnswerAdvisor questionAnswerAdvisor = QuestionAnswerAdvisor
+                .builder(vectorStore)
+                .searchRequest(SearchRequest.builder()
+                        .similarityThreshold(0.7d)
+                        .topK(5)
+                        .build())
+                .build();
+
+
         return ChatClient
                 .builder(openAiChatModel)
                 .defaultTools(nursingProjectTool)
                 .defaultSystem(SystemConstants.prompt)
                 .defaultAdvisors(
                         new SimpleLoggerAdvisor(),
-                        MessageChatMemoryAdvisor.builder(redisChatMemoryService).build())
+                        MessageChatMemoryAdvisor.builder(redisChatMemoryService).build(),
+                        questionAnswerAdvisor)
+                .build();
+    }
+
+    @Bean
+    public TextSplitter textSplitter() {
+        return TokenTextSplitter.builder()
+                .withChunkSize(500)  //目标块大小  token数
+                .withMinChunkSizeChars(200) // 最小块的字符数
+                .withMinChunkLengthToEmbed(10) // 最小的文本字符长度
+                .withMaxNumChunks(10000)  //文档最大块数
+                .withKeepSeparator(false)   //不保留换行符
                 .build();
     }
 
