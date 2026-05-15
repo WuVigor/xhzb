@@ -74,4 +74,13 @@ public class SpringAIConfig {
                 .builder(deepSeekChatModel)
                 .build();
     }*/
+
+    @Bean
+    public ChatClient chatClientByAssessment(OpenAiChatModel openAiChatModel) {
+        return ChatClient
+                .builder(openAiChatModel)
+                .defaultSystem("你是一个健康评估专家，专门用来评估老人的健康情况")
+                .defaultAdvisors(new SimpleLoggerAdvisor())
+                .build();
+    }
 }

@@ -38,7 +38,6 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         if(isExclude()){
             this.strictInsertFill(metaObject, "createBy", String.class, loadUserId()+"");
         }
-
     }
 
     @Override
