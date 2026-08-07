@@ -16,29 +16,41 @@ ruoyi:
 # 激活环境
 spring:
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   ai:
-    deepseek:
-      base-url: https://api.deepseek.com
-      api-key: sk-0f4ca12b1f9a421d9f7c3aa165e0aca6
-      chat:
-        options:
-          model: deepseek-chat
+    # 测试阶段默认全部使用本机 Ollama；后续可通过环境变量切换为百炼兼容接口。
+    model:
+      chat: ${AI_CHAT_PROVIDER:ollama}
+      embedding: ${AI_EMBEDDING_PROVIDER:ollama}
     ollama:
-      base-url: http://localhost:11434
+      base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
       chat:
         options:
-          model: qwen2:0.5b
-    openai:
-      api-key: sk-2bf88854ffa1402a83d2eaf02daeedec  #读取环境变量中的api key
-      base-url: https://dashscope.aliyuncs.com/compatible-mode
-      chat:
-        options:
-          model: qwen3.6-plus
+          model: ${OLLAMA_CHAT_MODEL:qwen2.5:7b}
       embedding:
         options:
-          model: text-embedding-v4
-          dimensions: 1024
+          model: ${OLLAMA_EMBEDDING_MODEL:mxbai-embed-large}
+    openai:
+      # 部署文档使用 OPENAI_API_KEY；同时兼容本机已有的 DASHSCOPE_API_KEY。
+      api-key: ${OPENAI_API_KEY:${DASHSCOPE_API_KEY:not-configured}}
+      base-url: ${DASHSCOPE_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode}
+      chat:
+        options:
+          model: ${DASHSCOPE_CHAT_MODEL:qwen3.6-plus}
+      embedding:
+        options:
+          model: ${DASHSCOPE_EMBEDDING_MODEL:text-embedding-v4}
+          dimensions: ${DASHSCOPE_EMBEDDING_DIMENSIONS:1024}
+    vectorstore:
+      redis:
+        initialize-schema: true
+        index-name: ${VECTOR_INDEX_NAME:xhzb-bj02-knowledge-index}
+        prefix: ${VECTOR_KEY_PREFIX:xhzb:bj02:knowledge:}
+
+# bj02 与其他本地项目共用 Redis 时使用独立键前缀。
+xhzb:
+  ai:
+    chat-memory-prefix: ${CHAT_MEMORY_PREFIX:xhzb:bj02:chat:memory:}
 
 # 用户配置
 user:
@@ -53,7 +65,7 @@ token:
   # 令牌自定义标识
   header: Authorization
   # 令牌密钥
-  secret: abcdefghijklmnopqrstuvwxyz
+  secret: ${TOKEN_SECRET:abcdefghijklmnopqrstuvwxyz}
   # 令牌有效期（默认30分钟）
   expireTime: 30
 # MyBatisPlus配置

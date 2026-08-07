@@ -3,6 +3,7 @@ package com.xhzb.nursing.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.xhzb.nursing.domain.Floor;
 import com.xhzb.nursing.domain.vo.FloorVo;
+import com.xhzb.nursing.domain.vo.TreeVo;
 
 import java.util.List;
 
@@ -60,4 +61,6 @@ public interface IFloorService extends IService<Floor>
      * @return
      */
     List<Floor> selectAllByNur();
+
+    List<TreeVo> getRoomAndBedByBedStatus(Integer status);
 }

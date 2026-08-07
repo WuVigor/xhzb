@@ -43,6 +43,30 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by code, create_time desc
     </select>
 
+    <resultMap id="floorRoomBedTreeResult" type="com.xhzb.nursing.domain.vo.TreeVo">
+        <id property="value" column="floor_id"/>
+        <result property="label" column="floor_name"/>
+        <collection property="children" ofType="com.xhzb.nursing.domain.vo.TreeVo">
+            <id property="value" column="room_id"/>
+            <result property="label" column="room_code"/>
+            <collection property="children" ofType="com.xhzb.nursing.domain.vo.TreeVo">
+                <id property="value" column="bed_id"/>
+                <result property="label" column="bed_number"/>
+            </collection>
+        </collection>
+    </resultMap>
+
+    <select id="selectRoomAndBedTree" resultMap="floorRoomBedTreeResult">
+        select f.id as floor_id, f.name as floor_name,
+               r.id as room_id, r.code as room_code,
+               b.id as bed_id, b.bed_number
+        from floor f
+        inner join room r on r.floor_id = f.id and (r.is_deleted = 0 or r.is_deleted is null)
+        inner join bed b on b.room_id = r.id
+        where b.bed_status = #{status}
+        order by f.code, r.sort, b.sort
+    </select>
+
     <insert id="insertFloor" parameterType="Floor" useGeneratedKeys="true" keyProperty="id">
         insert into floor
         <trim prefix="(" suffix=")" suffixOverrides=",">

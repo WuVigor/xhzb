@@ -70,6 +70,12 @@ public class RoomController extends BaseController
         return R.ok(roomService.selectRoomById(id));
     }
 
+    @GetMapping("/one/{id}")
+    @Operation(summary = "查询房间、楼层及房型价格")
+    public R<RoomVo> getOne(@PathVariable Long id) {
+        return R.ok(roomService.getRoomById(id));
+    }
+
     /**
      * 新增房间
      */

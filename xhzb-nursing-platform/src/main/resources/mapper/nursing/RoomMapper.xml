@@ -80,6 +80,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by r.sort, r.create_time desc
     </select>
 
+    <select id="selectRoomVoById" resultType="com.xhzb.nursing.domain.vo.RoomVo">
+        select r.id,
+               r.id as room_id,
+               r.code,
+               r.floor_id,
+               f.name as floor_name,
+               rt.price
+        from room r
+        left join floor f on f.id = r.floor_id
+        left join room_type rt on rt.name = r.type_name
+        where r.id = #{id}
+    </select>
+
 
 
     <resultMap id="roomVoWithNurResultMap" type="com.xhzb.nursing.domain.vo.RoomVo">

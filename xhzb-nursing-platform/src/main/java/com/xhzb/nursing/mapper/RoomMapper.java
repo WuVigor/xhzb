@@ -68,4 +68,6 @@ public interface RoomMapper extends BaseMapper<Room>
 
     List<RoomVo> selectByFloorIdWithNur(Long floorId);
 
+    RoomVo selectRoomVoById(Long id);
+
 }

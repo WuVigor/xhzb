@@ -44,6 +44,12 @@ public class HealthAssessmentController extends BaseController
     @Autowired
     private IHealthAssessmentService healthAssessmentService;
 
+    @GetMapping("/elder/{id}")
+    @Operation(summary = "查询入住办理所需的老人评估信息")
+    public AjaxResult getElderInfo(@PathVariable Long id) {
+        return success(healthAssessmentService.getElderInfoById(id));
+    }
+
 
     @Autowired
     private IHealthAssessmentReportService healthAssessmentReportService;

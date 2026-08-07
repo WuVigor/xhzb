@@ -5,6 +5,7 @@ import com.xhzb.nursing.domain.Floor;
 import com.xhzb.nursing.mapper.FloorMapper;
 import com.xhzb.nursing.service.IFloorService;
 import com.xhzb.nursing.domain.vo.FloorVo;
+import com.xhzb.nursing.domain.vo.TreeVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -91,5 +92,10 @@ public class FloorServiceImpl extends ServiceImpl<FloorMapper, Floor> implements
     @Override
     public List<Floor> selectAllByNur() {
         return floorMapper.selectAllByNur();
+    }
+
+    @Override
+    public List<TreeVo> getRoomAndBedByBedStatus(Integer status) {
+        return floorMapper.selectRoomAndBedTree(status);
     }
 }

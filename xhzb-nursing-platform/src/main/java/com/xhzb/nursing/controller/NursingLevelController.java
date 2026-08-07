@@ -51,6 +51,15 @@ public class NursingLevelController extends BaseController
         return getDataTable(list);
     }
 
+    @GetMapping("/listAll")
+    @Operation(summary = "查询全部启用的护理等级")
+    public AjaxResult listAll()
+    {
+        NursingLevel nursingLevel = new NursingLevel();
+        nursingLevel.setStatus(1);
+        return success(nursingLevelService.selectNursingLevelList(nursingLevel));
+    }
+
     /**
      * 获取护理等级详细信息
      */

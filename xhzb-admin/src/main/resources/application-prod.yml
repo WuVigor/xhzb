@@ -1,7 +1,7 @@
-# 开发环境配置
+# 生产环境配置
 server:
   # 服务器的HTTP端口，默认为8080
-  port: 8080
+  port: 9000
   servlet:
     # 应用的访问路径
     context-path: /
@@ -24,6 +24,11 @@ logging:
 
 # Spring配置
 spring:
+  ai:
+    # 容器部署默认使用百炼兼容接口；如服务器也运行 Ollama，可通过环境变量切换。
+    model:
+      chat: ${AI_CHAT_PROVIDER:openai}
+      embedding: ${AI_EMBEDDING_PROVIDER:openai}
   # 资源信息
   messages:
     # 国际化资源文件路径
@@ -39,23 +44,24 @@ spring:
   devtools:
     restart:
       # 热部署开关
-      enabled: true
+      enabled: false
   datasource:
     driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/xhzb?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-    username: root
-    password: 1234
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   # redis 配置
   data:
     redis:
+      client-type: jedis
       # 地址
-      host: localhost
+      host: ${REDIS_HOST}
       # 端口，默认为6379
-      port: 6379
+      port: ${REDIS_PORT:6379}
       # 数据库索引
       database: 0
       # 密码
-      password: 123456
+      password: ${REDIS_PASSWORD:}
       # 连接超时时间
       timeout: 10s
       jedis:
@@ -63,7 +69,23 @@ spring:
           enabled: true
 # oss的配置，要根据自己实际情况来进行修改
 oss:
-  endpoint: oss-cn-beijing.aliyuncs.com
-  accessKeyId: ${OSS_ACCESS_KEY_ID}
-  accessKeySecret: ${OSS_ACCESS_KEY_SECRET}
-  bucketName: itheim
+  enabled: ${OSS_ENABLED:false}
+  endpoint: ${OSS_ENDPOINT:oss-cn-beijing.aliyuncs.com}
+  accessKeyId: ${OSS_ACCESS_KEY_ID:}
+  accessKeySecret: ${OSS_ACCESS_KEY_SECRET:}
+  bucketName: ${OSS_BUCKET_NAME:}
+
+# 生产环境文件存储目录（由 Docker 映射到宿主机）。
+ruoyi:
+  profile: ${RUOYI_PROFILE:/home/ruoyi/uploadPath}
+
+# 生产环境关闭接口文档。
+swagger:
+  enabled: false
+  pathMapping: /prod-api
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

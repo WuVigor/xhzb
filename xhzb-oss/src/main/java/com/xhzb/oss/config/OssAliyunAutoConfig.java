@@ -8,11 +8,13 @@ import com.aliyun.oss.model.SetBucketLoggingRequest;
 import com.xhzb.oss.properties.AliOssConfigProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Slf4j
 @Configuration
+@ConditionalOnProperty(prefix = "oss", name = "enabled", havingValue = "true")
 public class OssAliyunAutoConfig {
 
     @Autowired

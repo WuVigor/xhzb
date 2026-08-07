@@ -6,6 +6,7 @@ import com.xhzb.nursing.domain.vo.Msg;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,8 @@ public class RedisChatMemoryService implements ChatMemory {
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
 
-    private static final String PREFIX = "chat:memory:";
+    @Value("${xhzb.ai.chat-memory-prefix:xhzb:bj02:chat:memory:}")
+    private String prefix;
 
     /**
      *
@@ -39,14 +41,14 @@ public class RedisChatMemoryService implements ChatMemory {
         }
 
         //存储到redis中
-        redisTemplate.opsForList().leftPushAll(PREFIX+conversationId,msgList);
+        redisTemplate.opsForList().leftPushAll(prefix + conversationId, msgList);
 
     }
 
     @Override
     public List<Message> get(String conversationId) {
         //从redis中获取数据
-        List<String> resultList = redisTemplate.opsForList().range(PREFIX + conversationId, 0, Integer.MAX_VALUE);
+        List<String> resultList = redisTemplate.opsForList().range(prefix + conversationId, 0, Integer.MAX_VALUE);
         if(null == resultList || resultList.isEmpty()){
             return List.of();
         }
@@ -60,6 +62,6 @@ public class RedisChatMemoryService implements ChatMemory {
 
     @Override
     public void clear(String conversationId) {
-        redisTemplate.delete(PREFIX+conversationId);
+        redisTemplate.delete(prefix + conversationId);
     }
 }

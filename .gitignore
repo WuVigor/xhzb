@@ -46,3 +46,8 @@ nbdist/
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
+
+# Deployment secrets
+.env
+*.env
+!.env.example

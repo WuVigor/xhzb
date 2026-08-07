@@ -7,15 +7,14 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
-import org.springframework.ai.deepseek.DeepSeekChatModel;
-import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.transformer.splitter.TextSplitter;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class SpringAIConfig {
@@ -26,7 +25,8 @@ public class SpringAIConfig {
      * @return
      */
     @Bean
-    public ChatClient chatClient(OpenAiChatModel openAiChatModel, VectorStore vectorStore, NursingProjectTool nursingProjectTool, RedisChatMemoryService redisChatMemoryService) {
+    @Primary
+    public ChatClient chatClient(ChatModel chatModel, VectorStore vectorStore, NursingProjectTool nursingProjectTool, RedisChatMemoryService redisChatMemoryService) {
 
         // 检索rag的数据
         QuestionAnswerAdvisor questionAnswerAdvisor = QuestionAnswerAdvisor
@@ -39,7 +39,7 @@ public class SpringAIConfig {
 
 
         return ChatClient
-                .builder(openAiChatModel)
+                .builder(chatModel)
                 .defaultTools(nursingProjectTool)
                 .defaultSystem(SystemConstants.prompt)
                 .defaultAdvisors(
@@ -75,10 +75,10 @@ public class SpringAIConfig {
                 .build();
     }*/
 
-    @Bean
-    public ChatClient chatClientByAssessment(OpenAiChatModel openAiChatModel) {
+    @Bean("chatClientByAssessment")
+    public ChatClient chatClientByAssessment(ChatModel chatModel) {
         return ChatClient
-                .builder(openAiChatModel)
+                .builder(chatModel)
                 .defaultSystem("你是一个健康评估专家，专门用来评估老人的健康情况")
                 .defaultAdvisors(new SimpleLoggerAdvisor())
                 .build();

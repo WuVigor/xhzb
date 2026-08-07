@@ -8,6 +8,7 @@ import com.xhzb.common.enums.BusinessType;
 import com.xhzb.nursing.domain.Floor;
 import com.xhzb.nursing.service.IFloorService;
 import com.xhzb.nursing.domain.vo.FloorVo;
+import com.xhzb.nursing.domain.vo.TreeVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -95,5 +96,11 @@ public class FloorController extends BaseController
     public R<List<Floor>> getAllFloorsWithNur() {
         List<Floor> list = floorService.selectAllByNur();
         return R.ok(list);
+    }
+
+    @GetMapping("/getRoomAndBedByBedStatus/{status}")
+    @Operation(summary = "按床位状态查询楼层、房间和床位树")
+    public R<List<TreeVo>> getRoomAndBedByBedStatus(@PathVariable Integer status) {
+        return R.ok(floorService.getRoomAndBedByBedStatus(status));
     }
 }

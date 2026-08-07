@@ -19,6 +19,8 @@
         <java.version>17</java.version>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
         <spring-boot.version>3.5.0</spring-boot.version>
+        <!-- Spring Data Redis 3.5.0 and Spring AI 1.1.2 are compiled against Jedis 6.0.0. -->
+        <jedis.version>6.0.0</jedis.version>
         <druid.version>1.2.28</druid.version>
         <bitwalker.version>1.21</bitwalker.version>
         <kaptcha.version>2.3.3</kaptcha.version>
@@ -206,6 +208,13 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- Override Spring Boot 3.5.0's Jedis 5.2.0 to avoid SetParams linkage errors. -->
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>${jedis.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -228,8 +237,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.14.0</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${java.version}</release>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <parameters>true</parameters>
                 </configuration>

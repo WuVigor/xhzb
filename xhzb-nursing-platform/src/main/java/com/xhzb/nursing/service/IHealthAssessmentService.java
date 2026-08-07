@@ -5,6 +5,7 @@ import com.xhzb.nursing.domain.HealthAssessment;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.xhzb.nursing.domain.HealthAssessmentDataCollection;
 import com.xhzb.nursing.domain.dto.health.ElderAssessmentDto;
+import com.xhzb.nursing.domain.dto.checkin.CheckInElderDto;
 
 /**
  * 健康评估记录Service接口
@@ -58,4 +59,6 @@ public interface IHealthAssessmentService extends IService<HealthAssessment>
     public int deleteHealthAssessmentById(Long id);
 
     Long assessmentData(ElderAssessmentDto dto);
+
+    CheckInElderDto getElderInfoById(Long id);
 }

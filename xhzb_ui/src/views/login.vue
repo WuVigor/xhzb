@@ -74,10 +74,12 @@ const userStore = useUserStore()
 const route = useRoute();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
+const DEFAULT_ADMIN_PASSWORD = "admin123";
+const LEGACY_DEFAULT_ADMIN_PASSWORD = "xhzbItcast123";
 
 const loginForm = ref({
   username: "admin",
-  password: "xhzbItcast123",
+  password: DEFAULT_ADMIN_PASSWORD,
   rememberMe: false,
   code: "",
   uuid: ""
@@ -150,12 +152,22 @@ function getCode() {
 
 function getCookie() {
   const username = Cookies.get("username");
-  const password = Cookies.get("password");
-  const rememberMe = Cookies.get("rememberMe");
+  const passwordCookie = Cookies.get("password");
+  let rememberMe = Cookies.get("rememberMe") === "true";
+  let password = passwordCookie === undefined ? loginForm.value.password : decrypt(passwordCookie);
+
+  // 兼容旧版页面保存的错误默认密码，避免升级后继续从 Cookie 回填旧值。
+  if ((username === undefined || username === "admin") && password === LEGACY_DEFAULT_ADMIN_PASSWORD) {
+    password = DEFAULT_ADMIN_PASSWORD;
+    rememberMe = false;
+    Cookies.remove("password");
+    Cookies.remove("rememberMe");
+  }
+
   loginForm.value = {
     username: username === undefined ? loginForm.value.username : username,
-    password: password === undefined ? loginForm.value.password : decrypt(password),
-    rememberMe: rememberMe === undefined ? false : Boolean(rememberMe)
+    password,
+    rememberMe
   };
 }
 

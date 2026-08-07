@@ -6,6 +6,7 @@ import java.util.List;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.xhzb.common.exception.base.BaseException;
@@ -15,6 +16,8 @@ import com.xhzb.common.utils.StringUtils;
 import com.xhzb.nursing.domain.HealthAssessmentDataCollection;
 import com.xhzb.nursing.domain.HealthAssessmentReport;
 import com.xhzb.nursing.domain.dto.health.ElderAssessmentDto;
+import com.xhzb.nursing.domain.dto.health.BasicInfo;
+import com.xhzb.nursing.domain.dto.checkin.CheckInElderDto;
 import com.xhzb.nursing.service.IHealthAssessmentDataCollectionService;
 import com.xhzb.nursing.service.IHealthAssessmentReportService;
 import com.xhzb.nursing.util.PDFUtil;
@@ -152,6 +155,26 @@ public class HealthAssessmentServiceImpl extends ServiceImpl<HealthAssessmentMap
     public int deleteHealthAssessmentById(Long id)
     {
         return removeById(id)? 1 : 0;
+    }
+
+    @Override
+    public CheckInElderDto getElderInfoById(Long id) {
+        HealthAssessment assessment = getById(id);
+        if (assessment == null) {
+            throw new BaseException("健康评估记录不存在");
+        }
+        HealthAssessmentDataCollection collection = healthAssessmentDataCollectionService.getById(id);
+        CheckInElderDto result = new CheckInElderDto();
+        if (collection != null && StringUtils.isNotEmpty(collection.getBasicInfo())) {
+            BasicInfo basicInfo = JSONUtil.toBean(collection.getBasicInfo(), BasicInfo.class);
+            BeanUtil.copyProperties(basicInfo, result);
+            result.setName(basicInfo.getElderName());
+            result.setIdCardNo(basicInfo.getIdCard());
+            result.setBirthday(basicInfo.getBirthDate());
+            result.setPhone(basicInfo.getElderContact());
+        }
+        result.setCoreSuggestion(assessment.getCoreSuggestion());
+        return result;
     }
 
     @Override

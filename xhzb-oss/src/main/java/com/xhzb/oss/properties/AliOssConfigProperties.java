@@ -19,6 +19,9 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "oss")
 public class AliOssConfigProperties {
 
+    /** 是否启用阿里云 OSS；关闭时文件服务自动使用本地存储。 */
+    private boolean enabled;
+
     /**
      * 域名站点
      */
