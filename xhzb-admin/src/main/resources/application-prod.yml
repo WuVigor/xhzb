@@ -19,8 +19,9 @@ server:
 # 日志配置
 logging:
   level:
-    com.xhzb: info
+    com.xhzb: debug
     org.springframework: warn
+  config: classpath:logback-logstash.xml
 
 # Spring配置
 spring:
