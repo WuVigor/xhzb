@@ -39,7 +39,18 @@
               </template>
             </span>
             <div class="content" v-if="message.role === 'user'">{{ message.content }}</div>
-            <div class="content" v-else v-html="renderMarkdown(message.content)"></div>
+            <div class="content" v-else>
+              <div v-if="message.thinking" class="thinking-indicator" aria-label="正在思考">
+                <span>正在思考</span>
+                <span class="thinking-dots" aria-hidden="true">
+                  <i></i><i></i><i></i>
+                </span>
+              </div>
+              <div v-else class="assistant-answer">
+                <div class="answer-content" v-html="renderMarkdown(message.content)"></div>
+                <span v-if="message.streaming" class="streaming-cursor" aria-hidden="true"></span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="input-area">
@@ -50,8 +61,13 @@
             rows="1"
             ref="inputRef"
           ></textarea>
-          <button class="send-button" @click="sendMessage" :disabled="isStreaming || !userInput.trim()">
-            发送
+          <button
+            class="send-button"
+            :class="{ 'stop-button': isStreaming }"
+            @click="isStreaming ? stopGenerating() : sendMessage()"
+            :disabled="!isStreaming && !userInput.trim()"
+          >
+            {{ isStreaming ? '停止生成' : '发送' }}
           </button>
         </div>
       </div>
@@ -82,6 +98,7 @@ const messagesRef = ref(null)
 const inputRef = ref(null)
 const userInput = ref('')
 const isStreaming = ref(false)
+const abortController = ref(null)
 const messages = ref([])
 const currentChatId = ref(null) // 新对话时为null
 const isNewChat = ref(true) // 标识是否为新对话
@@ -175,13 +192,21 @@ const sendMessage = async () => {
   messages.value.push({ role: 'user', content: prompt })
   userInput.value = ''
   await scrollToBottom()
-  const aiMsg = { role: 'assistant', content: '' }
+  const aiMsg = { role: 'assistant', content: '', thinking: true, streaming: true }
   messages.value.push(aiMsg)
+  const aiMessageIndex = messages.value.length - 1
   isStreaming.value = true
+  abortController.value = new AbortController()
+  let completedSuccessfully = false
   try {
     // 新对话使用临时ID，历史对话使用已有ID
     const chatId = currentChatId.value
-    const response = await sendChatMessage({ prompt, chatId })
+    const response = await sendChatMessage({
+      prompt,
+      chatId,
+      signal: abortController.value.signal
+    })
+    if (!response.ok) throw new Error(`请求失败（${response.status}）`)
     if (!response.body) throw new Error('无流式响应')
     
     // 检查响应头中是否包含新的会话ID（新对话时）
@@ -213,32 +238,53 @@ const sendMessage = async () => {
         if (done) break
         
         // 累积新内容
-        accumulated += decoder.decode(value)  // 追加新内容
+        accumulated += decoder.decode(value, { stream: true })
         
         await nextTick(() => {
-          // 更新消息，保留role并更新content
-          const lastIndex = messages.value.length - 1
-          messages.value[lastIndex] = {
-            ...messages.value[lastIndex],
-            content: accumulated
+          messages.value[aiMessageIndex] = {
+            ...messages.value[aiMessageIndex],
+            content: accumulated,
+            thinking: false,
+            streaming: true
           }
         })
         await scrollToBottom()
       } catch (readError) {
+        if (abortController.value?.signal.aborted) throw readError
         console.error('读取流错误:', readError)
         break
       }
     }
+    completedSuccessfully = true
 
   } catch (e) {
-    aiMsg.content = '抱歉，发生了错误，请稍后重试。'
+    const stopped = e?.name === 'AbortError'
+    const currentContent = messages.value[aiMessageIndex]?.content || ''
+    messages.value[aiMessageIndex] = {
+      ...messages.value[aiMessageIndex],
+      content: currentContent || (stopped ? '已停止生成。' : '抱歉，回答生成失败，请稍后重试。'),
+      thinking: false,
+      streaming: false
+    }
   } finally {
+    if (messages.value[aiMessageIndex]) {
+      messages.value[aiMessageIndex] = {
+        ...messages.value[aiMessageIndex],
+        thinking: false,
+        streaming: false
+      }
+    }
     isStreaming.value = false
+    abortController.value = null
     await scrollToBottom()
     
-    // 会话结束后，刷新历史列表（异步执行，不阻塞UI）
-    refreshHistoryList()
+    // 仅在完整回答后刷新历史，避免停止或失败提示被历史消息覆盖
+    if (completedSuccessfully) refreshHistoryList()
   }
+}
+
+const stopGenerating = () => {
+  abortController.value?.abort()
 }
 
 // 处理输入框回车和换行
@@ -527,6 +573,54 @@ textarea {
 .send-button:disabled {
   background: #ccc;
   cursor: not-allowed;
+}
+.stop-button {
+  background: #606266;
+}
+.thinking-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  color: #606266;
+}
+.thinking-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.thinking-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: thinking-bounce 1.2s infinite ease-in-out;
+}
+.thinking-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.thinking-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.streaming-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 3px;
+  vertical-align: -0.12em;
+  background: #007cf0;
+  animation: cursor-blink 0.8s steps(1) infinite;
+}
+.assistant-answer .answer-content {
+  display: inline;
+}
+@keyframes thinking-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 .dark .chat-main {
   /* background: #222; */

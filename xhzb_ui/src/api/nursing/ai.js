@@ -1,13 +1,14 @@
 import { getToken } from '@/utils/auth'
 
-export function sendChatMessage({ prompt, chatId }) {
+export function sendChatMessage({ prompt, chatId, signal }) {
   const baseURL = import.meta.env.VITE_APP_BASE_API || ''
   return fetch(baseURL + '/ai/chat?prompt=' + prompt + '&chatId=' + chatId, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': getToken() ? 'Bearer ' + getToken() : undefined
-    }
+    },
+    signal
   })
 }
 
